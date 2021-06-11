@@ -10,7 +10,7 @@ class RegisterService {
     // var url = 'http://10.0.2.2:3000/images/upload/';
     // var url = 'http://localhost:3001/api/users';
     // var url = 'http://10.0.2.2:3001/api/users/';
-    var url = 'https://register.test.iknowplus.co.th/api/users';
+    var url = Uri.parse('https://register.test.iknowplus.co.th/api/users');
 
     Map user = {
       'username': username,

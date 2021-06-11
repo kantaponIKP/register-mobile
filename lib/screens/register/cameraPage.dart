@@ -441,6 +441,12 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
 
   Widget _cameraIdentificationCardPreviewWidget() {
     final size = MediaQuery.of(context).size.width;
+
+    try {
+      controller.debugCheckIsDisposed();
+      return new Container();
+    } catch (_) {}
+
     return (!controller.value.isInitialized)
         ? new Container()
         // : AspectRatio(
@@ -983,7 +989,7 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
 
     try {
       videoPath = filePath;
-      await controller.startVideoRecording(filePath);
+      await controller.startVideoRecording();
     } on CameraException catch (e) {
       _showCameraException(e);
       return null;
@@ -991,19 +997,18 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
     return filePath;
   }
 
-  Future<void> stopVideoRecording() async {
+  Future<XFile> stopVideoRecording() async {
     if (!controller.value.isRecordingVideo) {
       return null;
     }
 
     try {
-      await controller.stopVideoRecording();
+      var file = await controller.stopVideoRecording();
+      await _startVideoPlayer(file);
     } on CameraException catch (e) {
       _showCameraException(e);
       return null;
     }
-
-    await _startVideoPlayer();
   }
 
   Future<void> pauseVideoRecording() async {
@@ -1032,9 +1037,9 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _startVideoPlayer() async {
+  Future<void> _startVideoPlayer(XFile file) async {
     final VideoPlayerController vcontroller =
-        VideoPlayerController.file(File(videoPath));
+        VideoPlayerController.file(File(file.path));
     videoPlayerListener = () {
       if (videoController != null && videoController.value.size != null) {
         // Refreshing the state to update video player with the correct ratio.
@@ -1071,12 +1076,12 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
     }
 
     try {
-      await controller.takePicture(filePath);
+      var file = await controller.takePicture();
+      return file.path;
     } on CameraException catch (e) {
       _showCameraException(e);
       return null;
     }
-    return filePath;
   }
 
   void _showCameraException(CameraException e) {

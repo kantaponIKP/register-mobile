@@ -3,12 +3,17 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:register_demo/firebase_ml_vision.dart';
-import 'package:register_demo/detector_painters.dart';
+// import 'package:register_demo/detector_painters.dart';
 import 'package:register_demo/models/person.dart';
 import 'package:register_demo/screens/dialogs.dart';
 import 'package:register_demo/screens/register/previewPicturePage.dart';
+
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:googleapis/vision/v1.dart' as vision;
+import 'package:http/http.dart' as http;
 
 class GoogleVisionService {
   Person person;
@@ -32,24 +37,24 @@ class GoogleVisionService {
     12: "December"
   };
 
-  Detector _currentDetector = Detector.cloudText;
-  final BarcodeDetector _barcodeDetector =
-      FirebaseVision.instance.barcodeDetector();
-  final FaceDetector _faceDetector = FirebaseVision.instance.faceDetector();
-  final ImageLabeler _imageLabeler = FirebaseVision.instance.imageLabeler();
-  final ImageLabeler _cloudImageLabeler =
-      FirebaseVision.instance.cloudImageLabeler();
-  final TextRecognizer _recognizer = FirebaseVision.instance.textRecognizer();
-  final TextRecognizer _cloudRecognizer =
-      FirebaseVision.instance.cloudTextRecognizer();
-  final DocumentTextRecognizer _cloudDocumentRecognizer =
-      FirebaseVision.instance.cloudDocumentTextRecognizer();
+  // Detector _currentDetector = Detector.cloudText;
+  // final BarcodeDetector _barcodeDetector =
+  //     FirebaseVision.instance.barcodeDetector();
+  // final FaceDetector _faceDetector = FirebaseVision.instance.faceDetector();
+  // final ImageLabeler _imageLabeler = FirebaseVision.instance.imageLabeler();
+  // final ImageLabeler _cloudImageLabeler =
+  //     FirebaseVision.instance.cloudImageLabeler();
+  // final TextRecognizer _recognizer = FirebaseVision.instance.textRecognizer();
+  // final TextRecognizer _cloudRecognizer =
+  //     FirebaseVision.instance.cloudTextRecognizer();
+  // final DocumentTextRecognizer _cloudDocumentRecognizer =
+  //     FirebaseVision.instance.cloudDocumentTextRecognizer();
   final ImagePicker _picker = ImagePicker();
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
 
   DateTime selectedDate = DateTime.now();
 
-  ImageSource _imgsource;
+  // ImageSource _imgsource;
 
   final List<Tab> tabs = <Tab>[
     new Tab(icon: Icon(Icons.person), text: "ID Card"),
@@ -80,39 +85,79 @@ class GoogleVisionService {
     return person;
   }
 
-  Future<String> scanImage(File imageFile) async {
-    final FirebaseVisionImage visionImage =
-        FirebaseVisionImage.fromFile(imageFile);
+  // http.Client httpClient = http.Client();
 
-    dynamic results;
-    switch (_currentDetector) {
-      case Detector.barcode:
-        results = await _barcodeDetector.detectInImage(visionImage);
-        break;
-      case Detector.face:
-        results = await _faceDetector.processImage(visionImage);
-        break;
-      case Detector.label:
-        results = await _imageLabeler.processImage(visionImage);
-        break;
-      case Detector.cloudLabel:
-        results = await _cloudImageLabeler.processImage(visionImage);
-        break;
-      case Detector.text:
-        results = await _recognizer.processImage(visionImage);
-        log("Log resultsText: ${results.text}");
-        break;
-      case Detector.cloudText:
-        results = await _cloudRecognizer.processImage(visionImage);
-        log("Log resultsText: ${results.text}");
-        break;
-      case Detector.cloudDocumentText:
-        results = await _cloudDocumentRecognizer.processImage(visionImage);
-        break;
-      default:
-        return null;
-    }
-    return results.text;
+  Future<String> scanImage(File imageFile) async {
+    // final FirebaseVisionImage visionImage =
+    //     FirebaseVisionImage.fromFile(imageFile);
+    // final visionImage = GoogleMlKit.vision.textDetector();
+    // dynamic results =
+    //     await visionImage.processImage(InputImage.fromFile(imageFile));
+
+    HttpsCallable annotateImage =
+        FirebaseFunctions.instance.httpsCallable('annotateImage');
+
+    var textDetectionFeature = vision.Feature();
+    textDetectionFeature.type = 'DOCUMENT_TEXT_DETECTION';
+    var features = [textDetectionFeature];
+
+    var imageUint8List = await imageFile.readAsBytes();
+    var imageContext = vision.ImageContext();
+    imageContext.languageHints = ['th', 'en'];
+
+    var imageSource = vision.ImageSource();
+    imageSource.imageUri =
+        "https://static.thairath.co.th/media/4DQpjUtzLUwmJZZO8tnBsFqkx6LyNi3Y1jdkieD2Y2ww.jpg";
+
+    var image = vision.Image();
+    // image.source = imageSource;
+    image.contentAsBytes = imageUint8List;
+
+    var annotateImageRequest = vision.AnnotateImageRequest();
+    annotateImageRequest.features = features;
+    annotateImageRequest.image = image;
+    annotateImageRequest.imageContext = imageContext;
+
+    // var batchAnnotateRequest = vision.AsyncBatchAnnotateImagesRequest();
+    // batchAnnotateRequest.requests = [annotateImageRequest];
+
+    // var requestJson = batchAnnotateRequest.toJson();
+    var requestJson = annotateImageRequest.toJson();
+
+    var response = await annotateImage(requestJson);
+    dynamic fullTextAnnotation = response.data[0]["fullTextAnnotation"];
+    String text = fullTextAnnotation["text"];
+
+    // dynamic results;
+    // switch (_currentDetector) {
+    //   case Detector.barcode:
+    //     results = await _barcodeDetector.detectInImage(visionImage);
+    //     break;
+    //   case Detector.face:
+    //     results = await _faceDetector.processImage(visionImage);
+    //     break;
+    //   case Detector.label:
+    //     results = await _imageLabeler.processImage(visionImage);
+    //     break;
+    //   case Detector.cloudLabel:
+    //     results = await _cloudImageLabeler.processImage(visionImage);
+    //     break;
+    //   case Detector.text:
+    //     results = await _recognizer.processImage(visionImage);
+    //     log("Log resultsText: ${results.text}");
+    //     break;
+    //   case Detector.cloudText:
+    //     results = await _cloudRecognizer.processImage(visionImage);
+    //     log("Log resultsText: ${results.text}");
+    //     break;
+    //   case Detector.cloudDocumentText:
+    //     results = await _cloudDocumentRecognizer.processImage(visionImage);
+    //     break;
+    //   default:
+    //     return null;
+    // }
+    print(text);
+    return text;
   }
 
   Person identificationCardExtractData(String text) {
@@ -506,12 +551,12 @@ class GoogleVisionService {
   }
 
   Person passportExtractData(String text) {
-     
     RegExp exp;
     bool isMatch;
     //find Idno
     var resultsPassportNo = '';
-    exp = new RegExp(r'(Passport.*)[\r\n]+([A-Z0-9] ?[A-Z0-9] ?[A-Z0-9] ?[A-Z0-9] ?[A-Z0-9] ?[A-Z0-9] ?[A-Z0-9] ?[A-Z0-9]? ?[A-Z0-9]?)');
+    exp = new RegExp(
+        r'(Passport.*)[\r\n]+([A-Z0-9] ?[A-Z0-9] ?[A-Z0-9] ?[A-Z0-9] ?[A-Z0-9] ?[A-Z0-9] ?[A-Z0-9] ?[A-Z0-9]? ?[A-Z0-9]?)');
     isMatch = exp.hasMatch(text);
     if (isMatch) {
       log("---------PassportNo---------");
@@ -564,7 +609,7 @@ class GoogleVisionService {
     }
 
     var resultsLastNameEng = '';
-        exp = new RegExp(r'(Surname.*)[\r\n]+([A-Z]{2}.*)');
+    exp = new RegExp(r'(Surname.*)[\r\n]+([A-Z]{2}.*)');
     isMatch = exp.hasMatch(text);
     if (isMatch) {
       log("---------Lastname Name Eng---------");
@@ -658,7 +703,7 @@ class GoogleVisionService {
     }
 
     log("-------------------------------END------------------------------");
-    
+
     Person person = new Person();
     person.nameTitleTh = resultsNameTitleTh;
     person.firstnameTh = resultsFirstNameTh;
