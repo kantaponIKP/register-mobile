@@ -3,8 +3,10 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_exif_rotation/flutter_exif_rotation.dart';
 import 'package:image/image.dart' as img;
+import 'package:image_editor/image_editor.dart';
 import 'package:register_demo/services/registerStorage.dart';
 // import 'package:image_editor/image_editor.dart';
+
 
 class PreviewPhoto extends StatefulWidget {
   final String path;
@@ -51,11 +53,22 @@ class _PreviewPhotoState extends State<PreviewPhoto> {
     // image = await FlutterExifRotation.rotateImage(path: widget.file);
     // File file = File(path);
     print("flip");
-    imageFile = await FlutterExifRotation.rotateImage(path: widget.path);
+    // imageFile = await FlutterExifRotation.rotateImage(path: widget.path);
     // imageFile = null;
-    // imageFile = _imageFile;
+    final img.Image capturedImage = img.decodeImage(await File(widget.path).readAsBytes());
+  final img.Image orientedImage = img.bakeOrientation(capturedImage);
+  await File(widget.path).writeAsBytes(img.encodeJpg(orientedImage));
+
+
+    // final editorOption = ImageEditorOption();
+    // editorOption.addOption(RotateOption(180));
+    // final dst = await loadFromAsset(File(widget.path));
+    
+    // final result = await ImageEditor.editImage(image: dst, imageEditorOption: editorOption);
+    imageFile = File(widget.path);
     setState(() {
       _imageFile = imageFile;
+      // _imageFile = result;
     });
   }
 

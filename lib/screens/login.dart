@@ -75,7 +75,14 @@ class _LoginPageState extends State<LoginPage> {
 
   login() {
     log("--- login ---");
-    loginService.login();
+    // loginService.login();
+            Navigator.push(context,
+            MaterialPageRoute(builder: (BuildContext context) => HomePage()));
+  }
+
+  onPressedSignUp() {
+    registerStorage.clearData();
+    Navigator.pushNamed(context, '/consent');
   }
 
   @override
@@ -97,8 +104,8 @@ class _LoginPageState extends State<LoginPage> {
                   padding: const EdgeInsets.all(50),
                   // height: 200.0,
                   // width: 200.0,
-                  height: screenSize.width*0.5,
-                  width: screenSize.width*0.5,
+                  height: screenSize.width * 0.5,
+                  width: screenSize.width * 0.5,
                   decoration: BoxDecoration(
                     image: DecorationImage(
                       image: AssetImage('assets/images/iknowplusLogo.png'),
@@ -116,60 +123,49 @@ class _LoginPageState extends State<LoginPage> {
                   padding: EdgeInsets.only(top: 100),
                   child: Column(
                     children: <Widget>[
-                      InkWell(
-                        onTap: () {
-                          login();
-                          // Navigator.push(
-                          //     context,
-                          //     MaterialPageRoute(
-                          //         builder: (BuildContext context) =>
-                          //             HomePage(userInfo: null)));
-                        },
-                        child: Container(
-                          height: 50,
+                      Container(
                           width: MediaQuery.of(context).size.width / 1.2,
-                          decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  // Color(0xff6bceff),
-                                  // Color(0xFF00abff),
-                                  Colors.red[300],
-                                  Colors.red[500],
-                                ],
-                              ),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(50))),
-                          child: Center(
-                            child: Text(
-                              'Login'.toUpperCase(),
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                      ),
+                          child:
+                      ElevatedButton(
+                        
+                          child: Text("เข้าสู่ระบบ".toUpperCase(),
+                              style: TextStyle(fontSize: 14)),
+                          style: ButtonStyle(
+                              padding: MaterialStateProperty.all<EdgeInsets>(
+                                  EdgeInsets.all(15)),
+                              foregroundColor: MaterialStateProperty.all<Color>(
+                                  Colors.white),
+                              backgroundColor:
+                                  MaterialStateProperty.all<Color>(Theme.of(context).primaryColor),
+                              shape: MaterialStateProperty.all<
+                                      RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(50.0),
+                                      side: BorderSide(color: Theme.of(context).primaryColor)))),
+                          onPressed: () => login())),
+                      SizedBox(height: 20),
+                       Container(
+                          width: MediaQuery.of(context).size.width / 1.2,
+                          child:
+                      TextButton(
+                          child: Text("ลงทะเบียน".toUpperCase(),
+                              style: TextStyle(fontSize: 14)),
+                          style: ButtonStyle(
+                              padding: MaterialStateProperty.all<EdgeInsets>(
+                                  EdgeInsets.all(15)),
+                              foregroundColor:
+                                  MaterialStateProperty.all<Color>(Theme.of(context).primaryColor),
+                              shape: MaterialStateProperty.all<
+                                      RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(50.0),
+                                      side: BorderSide(color: Theme.of(context).primaryColor)))),
+                          onPressed: () => onPressedSignUp())),
                     ],
                   ),
                 ),
                 SizedBox(
                   height: 50,
-                ),
-                InkWell(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text("Don't have an account ?"),
-                      Text(
-                        "Sign Up",
-                        style: TextStyle(color: Colors.red[400]),
-                      ),
-                    ],
-                  ),
-                  onTap: () {
-                    registerStorage.clearData();
-                    Navigator.pushNamed(context, '/register');
-                  },
                 ),
               ],
             ),

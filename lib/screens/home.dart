@@ -22,8 +22,8 @@ class _HomePageState extends State<HomePage> {
   LoginService loginService = LoginService.getInstance();
   UserService userService = UserService.getInstance();
   User user;
-  String username = '';
-  String email = '';
+  String username = 'Kantapon';
+  String email = 'kantapon@iknowplus.co.th';
 
   void initState() {
     super.initState();
@@ -35,8 +35,13 @@ class _HomePageState extends State<HomePage> {
     //   initUser();
     // }
     // userService = UserService.getInstance();
-    username = userService.user.given_name;
-    email = userService.user.email;
+
+//****************************************************************************************************************  comment*/
+    // username = userService.user.given_name;  
+    // email = userService.user.email;
+//******************************************************************************************************** */
+    
+
     // username = '';
     // email = '';
   }

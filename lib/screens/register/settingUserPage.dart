@@ -11,10 +11,8 @@ import 'package:register_demo/services/registerService.dart';
 import 'package:register_demo/services/registerStorage.dart';
 
 class SettingUserPage extends StatefulWidget {
-    final Sink<bool> dataSink;
+  final Sink<bool> dataSink;
   SettingUserPage(this.dataSink);
-
-
 
   @override
   _SettingUserPageState createState() => _SettingUserPageState();
@@ -27,7 +25,8 @@ class _SettingUserPageState extends State<SettingUserPage> {
     super.initState();
     registerStorage = RegisterStorage.getInstance();
   }
-   Person person;
+
+  Person person;
 
   ResponseData responseData;
   String url = '';
@@ -36,7 +35,7 @@ class _SettingUserPageState extends State<SettingUserPage> {
   TextEditingController usernameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
 
-    void setStage() {
+  void setStage() {
     print("------------------SET STAGE--------------");
     bool isThirdStageComplete;
     print(usernameController.text);
@@ -44,49 +43,52 @@ class _SettingUserPageState extends State<SettingUserPage> {
     print(emailController.text.length);
     if ((usernameController.text.length > 4) &&
         (emailController.text.length >= 6)) {
-          registerStorage.person.username = usernameController.text;
-          registerStorage.person.email = emailController.text;
+      registerStorage.person.username = usernameController.text;
+      registerStorage.person.email = emailController.text;
       isThirdStageComplete = true;
     } else {
       isThirdStageComplete = false;
     }
-    print("isThirdStageComplete: "+isThirdStageComplete.toString());
+    print("isThirdStageComplete: " + isThirdStageComplete.toString());
     widget.dataSink.add(isThirdStageComplete);
   }
 
-
   @override
   Widget build(BuildContext context) {
-    double paddingText = 15;
+    double paddingText = 0;
+    double paddingBetweenText = 00;
+    double paddingTopText = 30;
+
     return Column(children: [
+      Container(alignment: Alignment.centerLeft, child: Text("ชื่อผู้ใช้",style: TextStyle(fontWeight: FontWeight.bold))),
       Container(
         padding: EdgeInsets.only(top: paddingText, bottom: paddingText),
         child: TextFormField(
-           controller: usernameController,
-           onChanged: (text) {
-                    setStage();
-                  },
-          decoration:
-              InputDecoration(labelText: 'Username',labelStyle: TextStyle(fontWeight: FontWeight.normal),border: OutlineInputBorder(), counterText: ''),
+          controller: usernameController,
+          onChanged: (text) {
+            setStage();
+          },
+          decoration: InputDecoration(counterText: ''),
           maxLength: 30,
-          style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       Container(
+          alignment: Alignment.centerLeft,
+          padding: EdgeInsets.only(top: paddingTopText),
+          child: Text("อีเมล",style: TextStyle(fontWeight: FontWeight.bold))),
+      Container(
         padding: EdgeInsets.only(top: paddingText, bottom: paddingText),
         child: TextFormField(
-           controller: emailController,
-           onChanged: (text) {
-                    setStage();
-                  },
-            decoration:
-                InputDecoration(labelText: 'Email',labelStyle: TextStyle(fontWeight: FontWeight.normal),
-                  border: OutlineInputBorder(), counterText: '',
-                  ),
-            maxLength: 30,
-            style: TextStyle(fontWeight: FontWeight.bold),
-            keyboardType: TextInputType.emailAddress,
-            ),
+          controller: emailController,
+          onChanged: (text) {
+            setStage();
+          },
+          decoration: InputDecoration(
+            counterText: '',
+          ),
+          maxLength: 30,
+          keyboardType: TextInputType.emailAddress,
+        ),
       ),
     ]);
   }

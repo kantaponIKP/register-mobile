@@ -175,7 +175,8 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
                 child: Center(
                     child: Stack(children: <Widget>[
                   _cameraIdentificationCardPreviewWidget(),
-                ])),
+                ])
+                ),
               ),
             ),
           ),
@@ -310,9 +311,9 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
             child: Container(
               child: Padding(
                 padding: const EdgeInsets.all(1.0),
-                child: Center(
+                // child: Center(
                   child: _cameraPreviewWidget(),
-                ),
+                // ),
               ),
               // decoration: BoxDecoration(
               //   color: Colors.black,
@@ -447,7 +448,37 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
       return new Container();
     } catch (_) {}
 
-    return (!controller.value.isInitialized)
+    // return (!controller.value.isInitialized)
+    //     ? new Container()
+    //     // : AspectRatio(
+    //     //     // aspectRatio: controller.value.aspectRatio,
+    //     //     aspectRatio: 3.0 / 4.0,
+    //     //     child: CameraPreview(controller),
+    //     //   );
+    //     : Transform.scale(
+    //         scale: 1.0,
+    //         child: AspectRatio(
+    //           aspectRatio: 3.0 / 4.0,
+    //           child: OverflowBox(
+    //             alignment: Alignment.center,
+    //             child: FittedBox(
+    //               fit: BoxFit.fitWidth,
+    //               child: Container(
+    //                 width: size,
+    //                 height: size / controller.value.aspectRatio,
+    //                 child: Stack(
+    //                   children: <Widget>[
+    //                     CameraPreview(controller),
+    //                     _identificationCardLayoutWidget()
+    //                   ],
+    //                 ),
+    //               ),
+    //             ),
+    //           ),
+    //         ),
+    //       );
+
+     return (!controller.value.isInitialized)
         ? new Container()
         // : AspectRatio(
         //     // aspectRatio: controller.value.aspectRatio,
@@ -455,19 +486,23 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
         //     child: CameraPreview(controller),
         //   );
         : Transform.scale(
-            scale: 1.0,
+            scale: 1,
             child: AspectRatio(
               aspectRatio: 3.0 / 4.0,
               child: OverflowBox(
                 alignment: Alignment.center,
                 child: FittedBox(
-                  fit: BoxFit.fitWidth,
+                  fit: BoxFit.fitHeight,
                   child: Container(
+                    // width: size/controller.value.aspectRatio,
                     width: size,
-                    height: size / controller.value.aspectRatio,
+                    height: size,
+                    // height: size / controller.value.aspectRatio,
                     child: Stack(
                       children: <Widget>[
+                        Center(child: 
                         CameraPreview(controller),
+                        ),
                         _identificationCardLayoutWidget()
                       ],
                     ),
@@ -803,21 +838,16 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
       print('timer $timeCounter');
       if (timeCounter < 1) {
         timer.cancel();
-        stopVideoRecording().then((_) {
-          if (mounted) setState(() {});
-          showInSnackBar('Video recorded to: $videoPath');
-        });
-        print('Stop Record');
-        returnToRegisterPage();
+        stopAndReturnVideo();
       } else {
         timeCounter = timeCounter - 1;
       }
     });
   }
 
-  void returnToRegisterPage() {
-    registerStorage.setVideoFile(File(videoPath));
-    registerStorage.setVideoPath(videoPath);
+  void returnToRegisterPage(String path) {
+    registerStorage.setVideoFile(File(path));
+    registerStorage.setVideoPath(path);
     print("***********Return*********");
     Navigator.popUntil(context, ModalRoute.withName('/register'));
   }
@@ -929,29 +959,27 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
         !controller.value.isRecordingVideo) {
       print("*Start Record");
       countdownTime();
-      startVideoRecording().then((String filePath) {
-        if (mounted) setState(() {});
-        // if (filePath != null) showInSnackBar('Saving video to $filePath');
-      });
+      startVideoRecording();
     } else if (controller != null &&
         controller.value.isInitialized &&
         controller.value.isRecordingVideo) {
       print("*Stop Record");
       timer.cancel();
-      stopVideoRecording().then((_) {
-        if (mounted) setState(() {});
-        // showInSnackBar('Video recorded to: $videoPath');
-      });
-      returnToRegisterPage();
+      stopAndReturnVideo();
     }
   }
 
-  void onStopButtonPressed() {
-    stopVideoRecording().then((_) {
-      if (mounted) setState(() {});
-      showInSnackBar('Video recorded to: $videoPath');
-    });
+  void stopAndReturnVideo() async {
+    XFile xFileVideo = await stopVideoRecording();
+    returnToRegisterPage(xFileVideo.path);
   }
+
+  // void onStopButtonPressed() {
+  //   stopVideoRecording().then((_) {
+  //     if (mounted) setState(() {});
+  //     showInSnackBar('Video recorded to: $videoPath');
+  //   });
+  // }
 
   void onPauseButtonPressed() {
     pauseVideoRecording().then((_) {
@@ -1004,7 +1032,8 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
 
     try {
       var file = await controller.stopVideoRecording();
-      await _startVideoPlayer(file);
+      // await _startVideoPlayer(file);
+      return file;
     } on CameraException catch (e) {
       _showCameraException(e);
       return null;
